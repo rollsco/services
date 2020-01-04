@@ -9,7 +9,7 @@ compress_images(
   output,
   { compress_force: false, statistic: true, autoupdate: true },
   false,
-  { jpg: { engine: "mozjpeg", command: ["-quality", "35"] } },
+  { jpg: { engine: "mozjpeg", command: ["-quality", "55"] } },
   { png: { engine: "pngquant", command: ["--quality=20-50"] } },
   { svg: { engine: "svgo", command: "--multipass" } },
   { gif: { engine: "gifsicle", command: ["--colors", "64", "--use-col=web"] } },
