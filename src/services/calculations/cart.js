@@ -1,14 +1,8 @@
-export const getTotalPriceFromCartBeforeDiscount = items =>
-  items.reduce((sum, { product }) => sum + product.price, 0);
-
-// export const getTotalPriceFromCartAfterDiscount = items =>
-//   items.reduce((sum, { product }) => sum + product.price, 0);
-
-export const calculateTotalCost = items =>
+export const getTotalCost = items =>
   items.reduce((priceSum, item) => priceSum + item.totalPrice, 0);
 
-export const calculateTotalPoints = items => {
-  const totalCost = calculateTotalCost(items);
+export const getTotalPoints = items => {
+  const totalCost = getTotalCost(items);
 
   return Math.floor(totalCost / 1000);
-}
+};

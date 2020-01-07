@@ -10,7 +10,7 @@ class Firebase {
   constructor() {
     app.initializeApp(firebaseConfig);
     this.db = app.firestore();
-    if(process.env.REACT_APP_MEASUREMENT_ID) {
+    if (process.env.REACT_APP_MEASUREMENT_ID) {
       this.analytics = app.analytics();
     }
   }
@@ -43,11 +43,12 @@ class Firebase {
     path,
     orderBy,
     limit,
+    where,
     onSnapshot,
     onError,
     onCompletion,
   }) => {
-    return this.prepareListQuery({ path, orderBy, limit }).onSnapshot(
+    return this.prepareListQuery({ path, orderBy, limit, where }).onSnapshot(
       collection => onSnapshot(getDocsWithId(collection)),
       logError,
       onCompletion,
@@ -62,28 +63,26 @@ class Firebase {
       .onSnapshot(doc => onSnapshot(getDocWithId(doc)), logError, onCompletion);
   };
 
-  prepareListQuery = ({ path, orderBy, limit }) => {
+  prepareListQuery = ({ path, orderBy, limit, where }) => {
     let reference = this.db.collection(path).limit(limit || 10);
 
     if (orderBy) {
-      // TODO order by several properties
+      // TODO: order by several properties
       const [property, direction] = orderBy[0].split("-");
       reference = reference.orderBy(property, direction);
     } else {
       reference = reference.orderBy("order");
     }
 
+    if (where) {
+      where.map(([a, b, c]) => (reference = reference.where(a, b, c)));
+    }
+
     return reference;
   };
 
-  set = async ({ path, document, data, replace }) =>
-    this.db
-      .collection(path)
-      .doc(document)
-      .set(this.getDataWithDefaultFields(data), { merge: !replace });
-
-  getList = async ({ path, include, orderBy, limit }) => {
-    const reference = this.prepareListQuery({ path, orderBy, limit });
+  getList = async ({ path, include, orderBy, limit, where }) => {
+    const reference = this.prepareListQuery({ path, orderBy, limit, where });
     const listQuerySnapshot = await reference.get();
 
     const entities = await Promise.all(
@@ -96,11 +95,25 @@ class Firebase {
     return entities;
   };
 
+  set = async ({ path, document, data, replace }) =>
+    this.db
+      .collection(path)
+      .doc(document)
+      .set(this.getDataWithDefaultFields(data), { merge: !replace });
+
   getDocument = async ({ path, document, include }) => {
+    if (document === "") {
+      return;
+    }
+
     const querySnapshot = await this.db
       .collection(path)
       .doc(document)
       .get();
+
+    if (!querySnapshot.exists) {
+      return;
+    }
 
     return {
       ...getDocWithId(querySnapshot),
@@ -135,6 +148,8 @@ class Firebase {
     created: data.created ? data.created : app.firestore.Timestamp.now(),
     modified: app.firestore.Timestamp.now(),
   });
+
+  getServerTimestamp = () => app.firestore.Timestamp.now();
 }
 
 export default Firebase;

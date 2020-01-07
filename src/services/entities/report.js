@@ -6,7 +6,7 @@ import {
   getCurrentYear,
   getCurrentMonth,
 } from "../datetime/date";
-import { getTotalPriceFromCartBeforeDiscount } from "../calculations/cart";
+import { getTotalCost } from "../calculations/cart";
 
 export const fetchReports = async ({
   month = getCurrentMonth(),
@@ -85,9 +85,7 @@ const getNewReport = ({ orders }) => {
   };
 
   orders.map(order => {
-    newReport.totalPriceBeforeDiscount += getTotalPriceFromCartBeforeDiscount(
-      order.cart,
-    );
+    newReport.totalPriceBeforeDiscount += getTotalCost(order.cart.items);
 
     const userEmail = order.userInfo.email;
     newReport.clients[userEmail] = newReport.clients[userEmail]
