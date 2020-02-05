@@ -9,18 +9,22 @@ import {
 import { getTotalCost } from "../calculations/cart";
 
 export const fetchReports = async ({
+  year = getCurrentYear(),
   month = getCurrentMonth(),
   setReports,
   firebase,
 }) => {
-  const isMonthOver = month < getCurrentMonth();
+  const intYear = parseInt(year);
+  const intMonth = parseInt(month);
+  const isMonthOver = ((intYear*100)+intMonth) < ((getCurrentYear()*100)+getCurrentMonth());
+
   const maxDay = isMonthOver ? 32 : getCurrentDayOfMonth();
   const reports = await Promise.all(
     daysOfMonth.map(day => {
       if (day < maxDay) {
         const dayString = day.toString().padStart(2, "0");
         const monthString = month.toString().padStart(2, "0");
-        const dateString = `${getCurrentYear()}-${monthString}-${dayString}T00:00:00`;
+        const dateString = `${year}-${monthString}-${dayString}T00:00:00`;
         const date = new Date(dateString);
 
         if (isNaN(date.getTime())) {
@@ -29,6 +33,8 @@ export const fetchReports = async ({
           return getReport({ date, firebase });
         }
       }
+
+      return null;
     }),
   );
 
@@ -97,10 +103,12 @@ const getNewReport = ({ orders }) => {
       ? newReport.hours[orderedAtHour] + 1
       : 1;
 
-    order.cart.items.map(({ product }) => {
-      newReport.products[product.name] = newReport.products[product.name]
-        ? newReport.products[product.name] + 1
+    order.cart.items.map(({ main }) => {
+      newReport.products[main.name] = newReport.products[main.name]
+        ? newReport.products[main.name] + 1
         : 1;
+
+        return null;
     });
 
     if (order.rating) {
@@ -115,6 +123,8 @@ const getNewReport = ({ orders }) => {
         comments: order.comments,
       });
     }
+
+    return null;
   });
 
   newReport.numberUniqueClients = Object.keys(newReport.clients).length;

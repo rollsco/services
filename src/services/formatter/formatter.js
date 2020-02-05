@@ -24,7 +24,7 @@ export const utcDate = (
   }
 };
 
-export const date = (date, isoFormat, includeTime) => {
+export const date = (date, isoFormat = false, includeTime = false) => {
   const hours = date
     .getHours()
     .toString()
