@@ -5,34 +5,46 @@ const airtable = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY });
 //     if (err) { console.error(err); }
 // };
 
-const upsertRecord = ({baseId, view, table, filterByFormula, getNewRecord}) =>  {
+const upsertRecord = ({
+  baseId,
+  view,
+  table,
+  filterByFormula,
+  getNewRecord,
+}) => {
   const base = airtable.base(baseId);
 
-  base(table).select({
-    maxRecords: 1,
-    view,
-    filterByFormula,
-  }).eachPage((records) => {
-    if(records.length > 0) {
-      const oldRecord = records[0];
-      const newRecord = getNewRecord({oldRecord});
-      
-      if(!newRecord) {
-        return;
-      }
+  base(table)
+    .select({
+      maxRecords: 1,
+      view,
+      filterByFormula,
+    })
+    .eachPage((records) => {
+      if (records.length > 0) {
+        const oldRecord = records[0];
+        const newRecord = getNewRecord({ oldRecord });
 
-      base(table).update([{
-        id: oldRecord.id,
-        fields: newRecord,
-      }]);
-    } else {
-      const newRecord = getNewRecord({});
-      base(table).create([{
-        fields: newRecord,
-      }]);
-    }
-  });
-}
+        if (!newRecord) {
+          return;
+        }
+
+        base(table).update([
+          {
+            id: oldRecord.id,
+            fields: newRecord,
+          },
+        ]);
+      } else {
+        const newRecord = getNewRecord({});
+        base(table).create([
+          {
+            fields: newRecord,
+          },
+        ]);
+      }
+    });
+};
 
 const processRecords = async ({
   baseId,
@@ -46,14 +58,19 @@ const processRecords = async ({
 
   base(table)
     .select({ view, fields, maxRecords })
-    .eachPage(pageRecords => {
-      const records = [];
-      pageRecords.forEach(record => {
-        records.push(record);
-      });
+    .eachPage(
+      (pageRecords) => {
+        const records = [];
+        pageRecords.forEach((record) => {
+          records.push(record);
+        });
 
-      callback(records);
-    });
+        callback(records);
+      },
+      (error) => {
+        console.log("--error", error);
+      },
+    );
 };
 
 const processValues = async ({
@@ -70,8 +87,8 @@ const processValues = async ({
     view,
     fields,
     maxRecords,
-    callback: records => {
-      const values = records.map(record => ({
+    callback: (records) => {
+      const values = records.map((record) => ({
         id: record.id,
         ...record.fields,
         createdTime: record._rawJson.createdTime,
