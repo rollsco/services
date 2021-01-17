@@ -1,4 +1,4 @@
-const lzwEncode = (s) => {
+export const lzwEncode = (s) => {
   var dict = {};
   var data = (s + "").split("");
   var out = [];
@@ -21,7 +21,7 @@ const lzwEncode = (s) => {
   return out;
 };
 
-const lzwDecode = (data) => {
+export const lzwDecode = (data) => {
   var dict = {};
   var currChar = String.fromCharCode(data[0]);
   var oldPhrase = currChar;
